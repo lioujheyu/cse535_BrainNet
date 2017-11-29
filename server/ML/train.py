@@ -67,24 +67,24 @@ if __name__ == '__main__':
         sys.stdout.flush()
 
     print ('')
-    print('Start SVM training ... ')
 
     # First SVM training for cross validation
     dataTrain, dataTest, labelTrain, labelTest = train_test_split(
         brainActList, labelList, test_size=0.1)
-
-    if args.model is 'svm'
+    if args.model == 'svm':
+        print('Start SVM training ... ')
         clf = svm.SVC(kernel='linear', decision_function_shape='ovo', probability=False)
-    else if args.model is 'gnb'
+    elif args.model == 'gnb':
+        print('Start Gaussian Naive Bayes training ... ')
         clf = GaussianNB()
     clf.fit(dataTrain, labelTrain)
     score = clf.score(dataTest, labelTest)
     print ('Cross validation score: {}'.format(score))
 
     # Second SVM training using all dataset and save the model in a file
-    if args.model is 'svm'
+    if args.model == 'svm':
         clf = svm.SVC(kernel='linear', decision_function_shape='ovo', probability=True)
-    else if args.model is 'gnb'
+    elif args.model == 'gnb':
         clf = GaussianNB()
     clf.fit(brainActList, labelList)
     with open('./model.dat', 'wb') as pickleFile:
