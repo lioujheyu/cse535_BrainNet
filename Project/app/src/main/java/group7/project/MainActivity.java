@@ -22,8 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import android.widget.AdapterView;
 
-
 public class MainActivity extends AppCompatActivity {
+
+    public static final int REMOTE = 0;
+    public static final int FOG = 1;
+    public static final int ADAPTIVE = 2;
 
     public class Item {
         boolean checked;
@@ -117,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private Button registerbutton, loginbutton;
     private RadioGroup radioGroup;
     private String serverchoose;
+    private int serverType;
 
     String db_path = Environment.getExternalStorageDirectory() + "/Android/Data/PROJECT_DATA";
     String remote_serverURL = "https://www.lioujheyu.com";
@@ -149,8 +153,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void jump_to_register_server(){
+    public void jump_to_register_server(int serverType){
         setContentView(R.layout.upload_layout);
+        if (serverType == REMOTE)
+            setTitle("Register - Remote Server");
+        else if (serverType == FOG)
+            setTitle("Register - Fog Server");
+
         listView = (ListView)findViewById(R.id.listview);
 
         initItems();
@@ -201,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void jump_to_login_server(){
+    public void jump_to_login_server(int serverType){
         setContentView(R.layout.test_layout);
         listView = (ListView)findViewById(R.id.listview);
 
@@ -254,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void jump_to_page_1() {
         setContentView(R.layout.activity_main);
-
+        setTitle("Project");
 
         registerbutton = (Button) findViewById(R.id.button);
         loginbutton = (Button) findViewById(R.id.button2);
@@ -267,10 +276,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 serverchoose = ((RadioButton) findViewById(radioGroup.getCheckedRadioButtonId())).getText().toString();
-                if(serverchoose == "Remote server")
+                if(serverchoose.equals("Remote server")) {
                     serverURL = remote_serverURL;
-                else if(serverchoose == "Fog server")
+                    serverType = REMOTE;
+                }
+                else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
+                    serverType = FOG;
+                }
 
                 mToast = Toast.makeText(MainActivity.this, serverchoose, Toast.LENGTH_SHORT);
                 mToast.show();
@@ -281,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                         mToast.cancel();
                     }
                 }, 500);
-                jump_to_register_server();
+                jump_to_register_server(serverType);
             }
         });
 
@@ -289,10 +302,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 serverchoose = ((RadioButton) findViewById(radioGroup.getCheckedRadioButtonId())).getText().toString();
-                if(serverchoose == "Remote server")
+                if(serverchoose.equals("Remote server")) {
                     serverURL = remote_serverURL;
-                else if(serverchoose == "Fog server")
+                    serverType = REMOTE;
+                }
+                else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
+                    serverType = FOG;
+                }
 
                 mToast = Toast.makeText(MainActivity.this, serverchoose, Toast.LENGTH_SHORT);
                 mToast.show();
@@ -303,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
                         mToast.cancel();
                     }
                 }, 500);
-                jump_to_login_server();
+                jump_to_login_server(serverType);
             }
         });
     }
