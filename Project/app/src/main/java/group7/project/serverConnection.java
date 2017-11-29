@@ -221,4 +221,58 @@ class serverConnection {
 			});
 		}
 	}
+
+	void downloadFile(String downloadFilePath, String downloadFileName) {
+		HttpURLConnection conn;
+		try {
+			URL url = new URL(serverURL + "/" + downloadFileName);
+			conn = (HttpURLConnection) url.openConnection();
+			int responseCode = conn.getResponseCode();
+			if (responseCode != HttpURLConnection.HTTP_OK) {
+				final String responseMessage = conn.getResponseMessage();
+				main.runOnUiThread(new Runnable() {
+					public void run() {
+						main.mToast.setText(responseMessage);
+						main.mToast.show();
+					}
+				});
+				return;
+			}
+
+			File localPath = new File(downloadFilePath);
+			if (!localPath.exists())
+				localPath.mkdirs();
+
+			FileOutputStream outputStream =
+					new FileOutputStream(downloadFilePath + "/" + downloadFileName);
+			// Lock the file in case it is also used by the database
+			FileLock filelock = outputStream.getChannel().lock();
+
+			InputStream is = conn.getInputStream();
+			byte[] buffer = new byte[4096];
+			int current;
+			while ((current = is.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, current);
+			}
+
+			filelock.release();
+			outputStream.close();
+			conn.disconnect();
+			main.runOnUiThread(new Runnable() {
+				public void run() {
+					main.mToast.setText("Download completed.");
+					main.mToast.show();
+				}
+			});
+		}
+		catch (Exception e) {
+			final String errMsg = e.toString();
+			main.runOnUiThread(new Runnable() {
+				public void run() {
+					main.mToast.setText(errMsg);
+					main.mToast.show();
+				}
+			});
+		}
+	}
 }
