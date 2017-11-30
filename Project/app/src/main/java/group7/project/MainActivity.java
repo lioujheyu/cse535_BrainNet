@@ -122,9 +122,9 @@ public class MainActivity extends AppCompatActivity {
     private String serverchoose;
     private int serverType;
 
-    String db_path = Environment.getExternalStorageDirectory() + "/Android/Data/PROJECT_DATA";
+    String db_path = Environment.getExternalStorageDirectory() + "/Android/data/PROJECT_DATA";
     String remote_serverURL = "https://www.lioujheyu.com";
-    String fog_serverURL = "";
+    String fog_serverURL = "http://en4109601l.cidse.dhcp.asu.edu";
     String serverURL = remote_serverURL;
 
     String train_serverPHPfile = "train_UploadToServer.php";
@@ -186,7 +186,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View arg0) {
                 for (int i=0; i<items.size(); i++){
                     if (items.get(i).isChecked()){
-                        CheckBoxlist.add(Integer.toString(i+1));
+                        // Add leading zeros to the string
+                        CheckBoxlist.add(String.format("%03d", i+1));
                     }
                 }
 

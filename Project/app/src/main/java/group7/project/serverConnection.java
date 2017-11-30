@@ -35,6 +35,7 @@ class serverConnection {
 		String twoHyphens = "--";
 		String boundary = "*****";
 		String filename = "", downloadFileName = "ttttest", downloadFilePath = uploadFilePath;
+		String ID = "", TASK;
 		int bytesRead, bytesAvailable, bufferSize;
 		byte[] buffer;
 		int maxBufferSize = 1024*1024;
@@ -72,11 +73,9 @@ class serverConnection {
 					if (i == uploadFileName.length)
 						filename = "end";
 					else {
-						filename = "S"
-								+ new String(new char[3 - uploadFileName[i].length()]).replace("\0", "0")
-								+ uploadFileName[i] + "R"
-								+ new String(new char[2 - Integer.toString(j).length()]).replace("\0", "0")
-								+ Integer.toString(j) + ".edf";
+						ID = "S" + uploadFileName[i];
+						TASK = "R" + String.format("%02d", j);
+						filename = ID + "/" + ID + TASK + ".edf";
 					}
 
 					uploadFile = new File(uploadFilePath + "/" + filename);
