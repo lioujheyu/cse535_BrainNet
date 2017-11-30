@@ -43,7 +43,7 @@ class serverConnection {
 		int start, end;
 		if(register_or_login == true){
 			start = 1;
-			end = 13;
+			end = 10;
 		}
 		else
 		{
@@ -99,31 +99,34 @@ class serverConnection {
 					conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
 
 					// open a URL connection to the Server
-					fileInputStream = new FileInputStream(uploadFile);
 					conn.setRequestProperty("uploaded_file", filename);
 					dos = new DataOutputStream(conn.getOutputStream());
 					dos.writeBytes(twoHyphens + boundary + lineEnd);
 					dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\";filename=\"" + filename + "\"" + lineEnd);
 					dos.writeBytes(lineEnd);
 
-					// create a buffer of  maximum size
-					bytesAvailable = fileInputStream.available();
-					bufferSize = Math.min(bytesAvailable, maxBufferSize);
-					buffer = new byte[bufferSize];
-
-					// read file and write it into form...
-					bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-					while (bytesRead > 0) {
-						dos.write(buffer, 0, bufferSize);
+					if(!filename.equals("end")) {
+						// create a buffer of  maximum size
+						fileInputStream = new FileInputStream(uploadFile);
 						bytesAvailable = fileInputStream.available();
 						bufferSize = Math.min(bytesAvailable, maxBufferSize);
-						bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-					}
+						buffer = new byte[bufferSize];
 
-					// send multipart form data necessary after file data...
-					dos.writeBytes(lineEnd);
-					dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+						// read file and write it into form...
+						bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+						while (bytesRead > 0) {
+							dos.write(buffer, 0, bufferSize);
+							bytesAvailable = fileInputStream.available();
+							bufferSize = Math.min(bytesAvailable, maxBufferSize);
+							bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+						}
+
+						// send multipart form data necessary after file data...
+						dos.writeBytes(lineEnd);
+						dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+						fileInputStream.close();
+					}
 
 
 					Log.e("get response", conn.getResponseMessage());
@@ -150,8 +153,6 @@ class serverConnection {
 							});
 						}
 					}
-
-					fileInputStream.close();
 					dos.flush();
 					dos.close();
 					conn.disconnect();
