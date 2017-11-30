@@ -1,6 +1,9 @@
 package group7.project;
 
+import android.content.DialogInterface;
 import android.os.Handler;
+import android.preference.DialogPreference;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.ViewDebug;
 import android.widget.Toast;
@@ -12,8 +15,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.DoubleBuffer;
 import java.nio.channels.FileLock;
 import java.io.*;
+import java.util.ArrayList;
+
 import javax.net.ssl.HttpsURLConnection;
 
 // This class is referred to http://tinyurl.com/or8wql2
@@ -21,6 +27,7 @@ class serverConnection {
 	private String serverURL; // should not include any filename
     private String serverPHPfile; // Upload procedure will use this server-side program
     private MainActivity main;
+
 
 	serverConnection(String serverURL, String serverPHPfile, MainActivity mainActivity) {
 		this.serverURL = serverURL;
@@ -151,11 +158,23 @@ class serverConnection {
 						if (response.equals("0")) {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
-									main.mToast.setText("Training Completed.");
-									main.mToast.show();
+									main.stopTime = System.currentTimeMillis();
+									Double elapsedTime = (double)(main.stopTime - main.startTime);
+									elapsedTime = elapsedTime / 1000;
+									main.msgBox.setMessage("Training Completed.\n execution time: " + Double.toString(elapsedTime) + " seconds")
+									.setTitle("Training Status").setCancelable(false)
+									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+										@Override
+										public void onClick(DialogInterface dialogInterface, int i) {
+
+										}
+									});
+									main.msgBox.create().setCanceledOnTouchOutside(false);
+									main.msgBox.show();
 								}
 							});
-							for(int idx=0; idx<=uploadFileName.length; idx++) {
+							main.registeredUser.clear();
+							for(int idx=0; idx<uploadFileName.length; idx++) {
 								main.registeredUser.add(Integer.parseInt(uploadFileName[idx]));
 							}
 
@@ -177,6 +196,55 @@ class serverConnection {
 					else { // Login
 						if (response.equals("0")) {
 							downloadFile(downloadFilePath, downloadFileName);
+							File file = new File(main.db_path + "/result");
+							BufferedReader bfr = new BufferedReader(new FileReader(file));
+							String line;
+							Double tp = 0.0; Double fp = 0.0; Double tn = 0.0; Double fn = 0.0; int testUser = 0;
+							bfr.readLine();
+							while ((line = bfr.readLine()) != null)
+							{
+								testUser += 1;
+								String[] num = line.split(",");
+								if (main.registeredUser.contains(Integer.parseInt(num[1])))
+								{
+									if (num[0].equals(num[1]))
+										tp += 1;
+									else
+										fn += 1;
+								}
+								else
+								{
+									if (num[0].equals("-1"))
+										tn += 1;
+									else
+										fp += 1;
+								}
+							}
+							Double accuracy = (tp+tn) / testUser;
+							Double precision = tp / (tp+fp);
+							Double recall = tp / (tp+fn);
+							Double F1Score = 2*precision*recall / (precision+recall);
+							main.stopTime = System.currentTimeMillis();
+							Double elapsedTime = (double)(main.stopTime - main.startTime);
+							elapsedTime = elapsedTime / 1000;
+							main.msgBox.setMessage("Testing Completed.\n execution time: " + Double.toString(elapsedTime) + " seconds\n\n"
+							+ "Total test users: " + Integer.toString(testUser) + "\nAccuracy: " + Double.toString(accuracy) + "\nPrecision: "
+							+ Double.toString(precision) + "\nRecall: " + Double.toString(recall) + "\nF1 Score: " + Double.toString(F1Score))
+									.setTitle("Testing Status").setCancelable(false)
+									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+										@Override
+										public void onClick(DialogInterface dialogInterface, int i) {
+
+										}
+									});
+							main.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									main.msgBox.create().setCanceledOnTouchOutside(false);
+									main.msgBox.show();
+								}
+							});
+
 							break;
 						}
 						else if (response.equals("success")) {

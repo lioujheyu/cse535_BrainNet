@@ -1,6 +1,7 @@
 package group7.project;
 
 import android.os.Environment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -122,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
     private String serverchoose;
     private int serverType;
     public ArrayList<Integer> registeredUser;
+    public long startTime, stopTime;
+    public AlertDialog.Builder msgBox;
 
     String db_path = Environment.getExternalStorageDirectory() + "/Android/data/PROJECT_DATA";
     String remote_serverURL = "https://www.lioujheyu.com";
@@ -135,7 +138,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        msgBox = new AlertDialog.Builder(this);
         mToast = Toast.makeText(MainActivity.this,"",Toast.LENGTH_SHORT);
+        registeredUser = new ArrayList<Integer>();
         jump_to_page_1();
     }
 
@@ -187,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
             String[] CheckBoxarray;
             @Override
             public void onClick(View arg0) {
+                startTime = System.currentTimeMillis();
                 for (int i=0; i<items.size(); i++){
                     if (items.get(i).isChecked()){
                         // Add leading zeros to the string
@@ -245,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View arg0) {
                 for (int i=0; i<items.size(); i++){
+                    startTime = System.currentTimeMillis();
                     if (items.get(i).isChecked()){
                         // Add leading zeros to the string
                         CheckBoxlist.add(String.format("%03d", i+1));
