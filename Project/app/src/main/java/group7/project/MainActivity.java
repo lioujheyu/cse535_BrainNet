@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup radioGroup;
     private String serverchoose;
     private int serverType;
+    public ArrayList<Integer> registeredUser;
 
     String db_path = Environment.getExternalStorageDirectory() + "/Android/data/PROJECT_DATA";
     String remote_serverURL = "https://www.lioujheyu.com";
@@ -141,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     private void initItems(){
         items = new ArrayList<Item>();
 
+        // Get item list from arrays.xml
         TypedArray arrayText = getResources().obtainTypedArray(R.array.restext);
 
         for(int i = 0; i < arrayText.length(); i++){
@@ -271,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void jump_to_page_1() {
         setContentView(R.layout.activity_main);
-        setTitle("Project");
+        setTitle(getString(R.string.app_name));
 
         registerbutton = (Button) findViewById(R.id.button);
         loginbutton = (Button) findViewById(R.id.button2);

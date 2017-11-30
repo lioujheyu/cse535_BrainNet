@@ -51,6 +51,8 @@ class serverConnection {
 			end = 14;
 		}
 
+		final int totalFileIndex = uploadFileName.length * (end-start+1);
+
 		try {
 			main.runOnUiThread(new Runnable() {
 				public void run() {
@@ -61,7 +63,7 @@ class serverConnection {
 			for(int i = 0; i <= uploadFileName.length; i++) {
 				for(int j = start; j <= end; j++) {
 					String response_buf = "";
-					final int x = i*(end-start+1)+(j-start+1), l = uploadFileName.length * (end-start+1);
+					final int currentFileIndex = i*(end-start+1) + (j-start+1);
 
 					if (i == uploadFileName.length)
 						filename = "end";
@@ -133,7 +135,8 @@ class serverConnection {
 						if (i < uploadFileName.length) {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
-									main.mToast.setText(Integer.toString(x) + "/" + Integer.toString(l) + " Uploaded.");
+									main.mToast.setText(Integer.toString(currentFileIndex) +
+											"/" + Integer.toString(totalFileIndex) + " Uploaded.");
 									main.mToast.show();
 								}
 							});
@@ -152,6 +155,10 @@ class serverConnection {
 									main.mToast.show();
 								}
 							});
+							for(int idx=0; idx<=uploadFileName.length; idx++) {
+								main.registeredUser.add(Integer.parseInt(uploadFileName[idx]));
+							}
+
 							break;
 						}
 						else if (response.equals("success")) {
