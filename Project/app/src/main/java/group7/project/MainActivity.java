@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void jump_to_register_server(int serverType){
+    public void jump_to_register_server(final int serverType){
         setContentView(R.layout.upload_layout);
         if (serverType == REMOTE)
             setTitle("Register - Remote Server");
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     public void run() {
                         serverConnection conn = new serverConnection(serverURL, train_serverPHPfile, MainActivity.this);
-                        conn.uploadFile(db_path, CheckBoxarray, true);  // true => register
+                        conn.uploadFile(db_path, CheckBoxarray, true, serverType);  // true => register
                     }
                 }).start();
                 CheckBoxlist.clear();
@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void jump_to_login_server(int serverType){
+    public void jump_to_login_server(final int serverType){
         setContentView(R.layout.test_layout);
         listView = (ListView)findViewById(R.id.listview);
         if (serverType == REMOTE)
@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     public void run() {
                         serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
-                        conn.uploadFile(db_path, CheckBoxarray, false); // false => login
+                        conn.uploadFile(db_path, CheckBoxarray, false, serverType); // false => login
                     }
                 }).start();
                 CheckBoxlist.clear();

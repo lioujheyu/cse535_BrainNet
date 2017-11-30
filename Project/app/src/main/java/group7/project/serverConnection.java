@@ -5,9 +5,6 @@ import android.os.Handler;
 import android.preference.DialogPreference;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.ViewDebug;
-import android.widget.Toast;
-import android.text.TextUtils;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +13,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.DoubleBuffer;
+import java.net.URLConnection;
 import java.nio.channels.FileLock;
 import java.io.*;
 import java.util.ArrayList;
@@ -24,6 +22,10 @@ import javax.net.ssl.HttpsURLConnection;
 
 // This class is referred to http://tinyurl.com/or8wql2
 class serverConnection {
+	public static final int REMOTE = 0;
+	public static final int FOG = 1;
+	public static final int ADAPTIVE = 2;
+
 	private String serverURL; // should not include any filename
     private String serverPHPfile; // Upload procedure will use this server-side program
     private MainActivity main;
@@ -35,8 +37,8 @@ class serverConnection {
 		this.main = mainActivity;
 	}
 
-	void uploadFile(String uploadFilePath, String[] uploadFileName, boolean register_or_login) {
-        HttpsURLConnection conn;
+	void uploadFile(String uploadFilePath, String[] uploadFileName, boolean register_or_login, int serverType) {
+        URLConnection conn;
 		DataOutputStream dos;
 		String lineEnd = "\r\n";
 		String twoHyphens = "--";
@@ -83,19 +85,26 @@ class serverConnection {
 					uploadFile = new File(uploadFilePath + "/" + filename);
 
 					if (!uploadFile.exists())
-						Log.e("file error", "file not exist = " + filename);
+						Log.d("file error", "file not exist = " + filename);
 					else
-						Log.e("file success", "file exist = " + filename);
+						Log.d("file success", "file exist = " + filename);
 
 					FileInputStream fileInputStream;
 					URL url = new URL(serverURL + "/" + serverPHPfile);
 
 					// Open a HTTP  connection to  the URL
-					conn = (HttpsURLConnection) url.openConnection();
+					if (serverType == REMOTE)
+						conn = (HttpsURLConnection) url.openConnection();
+					else
+						conn = (HttpURLConnection)url.openConnection();
+
 					conn.setDoInput(true); // Allow Inputs
 					conn.setDoOutput(true); // Allow Outputs
 					conn.setUseCaches(false); // Don't use a Cached Copy
-					conn.setRequestMethod("POST");
+					if (serverType == REMOTE)
+						((HttpsURLConnection)conn).setRequestMethod("POST");
+					else
+						((HttpURLConnection)conn).setRequestMethod("POST");
 					conn.setRequestProperty("Connection", "Keep-Alive");
 					conn.setRequestProperty("ENCTYPE", "multipart/form-data");
 					conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
@@ -130,10 +139,17 @@ class serverConnection {
 						fileInputStream.close();
 					}
 
-
-					Log.e("get response", conn.getResponseMessage());
-					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-						Log.e("upload success", "upload success = " + filename);
+					int responseCode;
+					if (serverType == REMOTE) {
+						responseCode = ((HttpsURLConnection) conn).getResponseCode();
+						Log.d("get response", ((HttpsURLConnection) conn).getResponseMessage());
+					}
+					else {
+						responseCode = ((HttpURLConnection) conn).getResponseCode();
+						Log.d("get response", ((HttpURLConnection) conn).getResponseMessage());
+					}
+					if (responseCode == HttpURLConnection.HTTP_OK) {
+						Log.d("upload success", "upload success = " + filename);
 						String line;
 						BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 						while ((line = br.readLine()) != null) {
@@ -151,7 +167,10 @@ class serverConnection {
 					}
 					dos.flush();
 					dos.close();
-					conn.disconnect();
+					if (serverType == REMOTE)
+						((HttpsURLConnection)conn).disconnect();
+					else
+						((HttpURLConnection)conn).disconnect();
 
 					final String response = response_buf;
 					if (register_or_login) { // Register
@@ -186,6 +205,7 @@ class serverConnection {
 						else {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
+									Log.e("PHP execution failed: ", response);
 									main.mToast.setText("PHP execution failed: " + response);
 									main.mToast.show();
 								}
