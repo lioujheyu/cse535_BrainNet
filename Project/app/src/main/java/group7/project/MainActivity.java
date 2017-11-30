@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mToast = Toast.makeText(MainActivity.this,"",Toast.LENGTH_SHORT);
         jump_to_page_1();
     }
 
@@ -214,6 +215,10 @@ public class MainActivity extends AppCompatActivity {
     public void jump_to_login_server(int serverType){
         setContentView(R.layout.test_layout);
         listView = (ListView)findViewById(R.id.listview);
+        if (serverType == REMOTE)
+            setTitle("Login - Remote Server");
+        else if (serverType == FOG)
+            setTitle("Login - Fog Server");
 
         initItems();
         myItemsListAdapter = new ItemsListAdapter(this, items);
@@ -239,9 +244,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View arg0) {
                 for (int i=0; i<items.size(); i++){
                     if (items.get(i).isChecked()){
-                        CheckBoxlist.add(Integer.toString(i+1));
+                        // Add leading zeros to the string
+                        CheckBoxlist.add(String.format("%03d", i+1));
                     }
                 }
+
                 CheckBoxarray = CheckBoxlist.toArray(new String[CheckBoxlist.size()]);
 
                 new Thread(new Runnable() {
@@ -285,16 +292,6 @@ public class MainActivity extends AppCompatActivity {
                     serverURL = fog_serverURL;
                     serverType = FOG;
                 }
-
-                mToast = Toast.makeText(MainActivity.this, serverchoose, Toast.LENGTH_SHORT);
-                mToast.show();
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mToast.cancel();
-                    }
-                }, 500);
                 jump_to_register_server(serverType);
             }
         });
@@ -311,16 +308,6 @@ public class MainActivity extends AppCompatActivity {
                     serverURL = fog_serverURL;
                     serverType = FOG;
                 }
-
-                mToast = Toast.makeText(MainActivity.this, serverchoose, Toast.LENGTH_SHORT);
-                mToast.show();
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mToast.cancel();
-                    }
-                }, 500);
                 jump_to_login_server(serverType);
             }
         });

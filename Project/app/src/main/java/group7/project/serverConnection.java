@@ -34,7 +34,7 @@ class serverConnection {
 		String lineEnd = "\r\n";
 		String twoHyphens = "--";
 		String boundary = "*****";
-		String filename = "", downloadFileName = "ttttest", downloadFilePath = uploadFilePath;
+		String filename = "", downloadFileName = "result", downloadFilePath = uploadFilePath;
 		String ID = "", TASK;
 		int bytesRead, bytesAvailable, bufferSize;
 		byte[] buffer;
@@ -54,20 +54,13 @@ class serverConnection {
 		try {
 			main.runOnUiThread(new Runnable() {
 				public void run() {
-					final Toast mToast = Toast.makeText(main, " Uploading...", Toast.LENGTH_SHORT);
-					mToast.show();
-					Handler handler = new Handler();
-					handler.postDelayed(new Runnable() {
-						@Override
-						public void run() {
-							mToast.cancel();
-						}
-					}, 500);
+					main.mToast.setText(" Uploading...");
+					main.mToast.show();
 				}
 			});
 			for(int i = 0; i <= uploadFileName.length; i++) {
 				for(int j = start; j <= end; j++) {
-					String response = "";
+					String response_buf = "";
 					final int x = i*(end-start+1)+(j-start+1), l = uploadFileName.length * (end-start+1);
 
 					if (i == uploadFileName.length)
@@ -135,20 +128,13 @@ class serverConnection {
 						String line;
 						BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 						while ((line = br.readLine()) != null) {
-							response += line;
+							response_buf += line;
 						}
 						if (i < uploadFileName.length) {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
-									final Toast mToast = Toast.makeText(main, Integer.toString(x) + "/" + Integer.toString(l) + " Uploaded.", Toast.LENGTH_SHORT);
-									mToast.show();
-									Handler handler = new Handler();
-									handler.postDelayed(new Runnable() {
-										@Override
-										public void run() {
-											mToast.cancel();
-										}
-									}, 500);
+									main.mToast.setText(Integer.toString(x) + "/" + Integer.toString(l) + " Uploaded.");
+									main.mToast.show();
 								}
 							});
 						}
@@ -156,58 +142,48 @@ class serverConnection {
 					dos.flush();
 					dos.close();
 					conn.disconnect();
-					if (response.equals("end") && register_or_login == true) {
-						main.runOnUiThread(new Runnable() {
-							public void run() {
-								final Toast mToast = Toast.makeText(main, "Training Completed.", Toast.LENGTH_SHORT);
-								mToast.show();
-							}
-						});
-						break;
+
+					final String response = response_buf;
+					if (register_or_login) { // Register
+						if (response.equals("0")) {
+							main.runOnUiThread(new Runnable() {
+								public void run() {
+									main.mToast.setText("Training Completed.");
+									main.mToast.show();
+								}
+							});
+							break;
+						}
+						else if (response.equals("success")) {
+							continue;
+						}
+						else {
+							main.runOnUiThread(new Runnable() {
+								public void run() {
+									main.mToast.setText("PHP execution failed: " + response);
+									main.mToast.show();
+								}
+							});
+							break;
+						}
 					}
-					if(response.equals("end") && register_or_login == false)
-					{
-						try {
-							url = new URL(serverURL + "/" + downloadFileName);
-							conn = (HttpsURLConnection) url.openConnection();
-							//int responseCode = conn.getResponseCode();
-
-							File localPath = new File(downloadFilePath);
-							if (!localPath.exists())
-								localPath.mkdirs();
-
-							FileOutputStream outputStream =
-									new FileOutputStream(downloadFilePath + "/" + downloadFileName);
-							// Lock the file in case it is also used by the database
-							FileLock filelock = outputStream.getChannel().lock();
-
-							InputStream is = conn.getInputStream();
-							buffer = new byte[4096];
-							int current;
-							while ((current = is.read(buffer)) != -1) {
-								outputStream.write(buffer, 0, current);
-							}
-
-							filelock.release();
-							outputStream.close();
-							conn.disconnect();
+					else { // Login
+						if (response.equals("0")) {
+							downloadFile(downloadFilePath, downloadFileName);
+							break;
+						}
+						else if (response.equals("success")) {
+							continue;
+						}
+						else {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
-									final Toast mToast = Toast.makeText(main, "Download Completed", Toast.LENGTH_SHORT);
-									mToast.show();
+									main.mToast.setText("PHP execution failed: " + response);
+									main.mToast.show();
 								}
 							});
+							break;
 						}
-						catch (Exception e) {
-							final String errMsg = e.toString();
-							main.runOnUiThread(new Runnable() {
-								public void run() {
-									final Toast mToast = Toast.makeText(main, "Download Failed", Toast.LENGTH_SHORT);
-									mToast.show();
-								}
-							});
-						}
-						break;
 					}
 				}
 			}
@@ -216,13 +192,14 @@ class serverConnection {
 			Log.e("connect error", "connect error" + e);
 			main.runOnUiThread(new Runnable() {
 				public void run() {
-					Toast.makeText(main, "Upload Failed.", Toast.LENGTH_SHORT).show();
+					main.mToast.setText("Upload Failed");
+					main.mToast.show();
 				}
 			});
 		}
 	}
 
-	void downloadFile(String downloadFilePath, String downloadFileName) {
+	private void downloadFile(String downloadFilePath, String downloadFileName) {
 		HttpURLConnection conn;
 		try {
 			URL url = new URL(serverURL + "/" + downloadFileName);
