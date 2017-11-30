@@ -10,19 +10,19 @@
     if($filename == "end")
     {
     	//call machine learning program
-        $output = shell_exec('echo a > aaaaa'); 
+        $output = system('python3 train.py -d train_temp &> train_dump', $return_out); 
         
 	    //--------------- remove files in folder "train"---------------
-        // $files = glob('/var/services/web/train_temp/*'); //get all file names
-		// foreach($files as $file){ // iterate files
-		// 	if(is_file($file))
-		// 	{
-		// 		unlink($file); // delete file
-		// 	}
-		// }
+        $files = glob('/var/services/web/train_temp/*'); //get all file names
+		foreach($files as $file){ // iterate files
+			if(is_file($file))
+			{
+				unlink($file); // delete file
+			}
+		}
 	    //--------------- remove files in folder "train"---------------
 
-	    echo "end";
+	    echo $return_out;
     }
     else if(move_uploaded_file($_FILES['uploaded_file']['tmp_name'], $file_path)) {
         echo "success";
