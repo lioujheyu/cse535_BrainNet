@@ -22,12 +22,13 @@ import android.content.res.TypedArray;
 import java.util.ArrayList;
 import java.util.List;
 import android.widget.AdapterView;
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int REMOTE = 0;
     public static final int FOG = 1;
-    public static final int ADAPTIVE = 2;
+    public int ADAPTIVE = 2;
 
     public class Item {
         boolean checked;
@@ -121,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
     private Button registerbutton, loginbutton;
     private RadioGroup radioGroup;
     private String serverchoose;
-    private int serverType;
-    public ArrayList<Integer> registeredUser;
+    public int serverType;
+    public ArrayList<Integer> registeredUser, TP, FP, FN, TN;
     public long startTime, stopTime;
     public AlertDialog.Builder msgBox;
 
@@ -141,22 +142,33 @@ public class MainActivity extends AppCompatActivity {
         msgBox = new AlertDialog.Builder(this);
         mToast = Toast.makeText(MainActivity.this,"",Toast.LENGTH_SHORT);
         registeredUser = new ArrayList<Integer>();
+        TP = new ArrayList<Integer>();
+        FP = new ArrayList<Integer>();
+        FN = new ArrayList<Integer>();
+        TN = new ArrayList<Integer>();
         jump_to_page_1();
     }
 
-    private void initItems(){
+    private void initItems(ArrayList<Integer> tp, ArrayList<Integer> fp, ArrayList<Integer> fn, ArrayList<Integer> tn){
         items = new ArrayList<Item>();
-
         // Get item list from arrays.xml
         TypedArray arrayText = getResources().obtainTypedArray(R.array.restext);
 
         for(int i = 0; i < arrayText.length(); i++){
             String s = arrayText.getString(i);
+            if (tp.contains(Integer.parseInt(s)))
+                s = s + ": Succeed login";
+            else if(fp.contains(Integer.parseInt(s)))
+                s = s + ": Failed denied";
+            else if(fn.contains(Integer.parseInt(s)))
+                s = s + ": Failed login";
+            else if(tn.contains(Integer.parseInt(s)))
+                s = s + ": Succeed denied";
             boolean b = false;
             Item item = new Item(s, b);
             items.add(item);
         }
-
+        tp.clear(); fp.clear(); fn.clear(); tn.clear();
         arrayText.recycle();
     }
 
@@ -170,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
         listView = (ListView)findViewById(R.id.listview);
 
-        initItems();
+        initItems(TP,FP,FN,TN);
         myItemsListAdapter = new ItemsListAdapter(this, items);
         listView.setAdapter(myItemsListAdapter);
 
@@ -228,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         else if (serverType == FOG)
             setTitle("Login - Fog Server");
 
-        initItems();
+        initItems(TP,FP,FN,TN);
         myItemsListAdapter = new ItemsListAdapter(this, items);
         listView.setAdapter(myItemsListAdapter);
 
@@ -301,6 +313,19 @@ public class MainActivity extends AppCompatActivity {
                     serverURL = fog_serverURL;
                     serverType = FOG;
                 }
+                else if(serverchoose.equals("Adaptive")) {
+                    serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
+                    if (conn.testFile() == 0) {
+                        serverURL = remote_serverURL;
+                        serverType = REMOTE;
+                        ADAPTIVE = 0;
+                    }
+                    else {
+                        serverURL = fog_serverURL;
+                        serverType = FOG;
+                        ADAPTIVE = 1;
+                    }
+                }
                 jump_to_register_server(serverType);
             }
         });
@@ -316,6 +341,18 @@ public class MainActivity extends AppCompatActivity {
                 else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
                     serverType = FOG;
+                }
+                else if(serverchoose.equals("Adaptive")) {
+                    serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
+                    if (ADAPTIVE == 0) {
+                        serverURL = remote_serverURL;
+                        serverType = REMOTE;
+                    }
+                    else if (ADAPTIVE == 1) {
+                        serverURL = fog_serverURL;
+                        serverType = FOG;
+                    }
+
                 }
                 jump_to_login_server(serverType);
             }

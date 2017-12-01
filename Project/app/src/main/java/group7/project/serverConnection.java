@@ -219,7 +219,7 @@ class serverConnection {
 							File file = new File(main.db_path + "/result");
 							BufferedReader bfr = new BufferedReader(new FileReader(file));
 							String line;
-							Double tp = 0.0; Double fp = 0.0; Double tn = 0.0; Double fn = 0.0; int testUser = 0;
+							Double testUser = 0.0;
 							bfr.readLine();
 							while ((line = bfr.readLine()) != null)
 							{
@@ -228,28 +228,24 @@ class serverConnection {
 								if (main.registeredUser.contains(Integer.parseInt(num[1])))
 								{
 									if (num[0].equals(num[1]))
-										tp += 1;
+										main.TP.add(Integer.parseInt(num[1]));
 									else
-										fn += 1;
+										main.FN.add(Integer.parseInt(num[1]));
 								}
 								else
 								{
 									if (num[0].equals("-1"))
-										tn += 1;
+										main.TN.add(Integer.parseInt(num[1]));
 									else
-										fp += 1;
+										main.FP.add(Integer.parseInt(num[1]));
 								}
 							}
-							Double accuracy = (tp+tn) / testUser;
-							Double precision = tp / (tp+fp);
-							Double recall = tp / (tp+fn);
-							Double F1Score = 2*precision*recall / (precision+recall);
+							Double accuracy = (main.TP.size()+main.TN.size()) / testUser;
 							main.stopTime = System.currentTimeMillis();
 							Double elapsedTime = (double)(main.stopTime - main.startTime);
 							elapsedTime = elapsedTime / 1000;
 							main.msgBox.setMessage("Testing Completed.\n execution time: " + Double.toString(elapsedTime) + " seconds\n\n"
-							+ "Total test users: " + Integer.toString(testUser) + "\nAccuracy: " + Double.toString(accuracy) + "\nPrecision: "
-							+ Double.toString(precision) + "\nRecall: " + Double.toString(recall) + "\nF1 Score: " + Double.toString(F1Score))
+							+ "Total test users: " + Integer.toString(testUser.intValue()) + "\nAccuracy: " + Double.toString(accuracy))
 									.setTitle("Testing Status").setCancelable(false)
 									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 										@Override
@@ -262,8 +258,10 @@ class serverConnection {
 								public void run() {
 									main.msgBox.create().setCanceledOnTouchOutside(false);
 									main.msgBox.show();
+									main.jump_to_login_server(main.serverType);
 								}
 							});
+
 
 							break;
 						}
@@ -346,5 +344,13 @@ class serverConnection {
 				}
 			});
 		}
+	}
+
+	int testFile() {
+		int server = 0; // 0: remote, 1: fog
+
+
+
+		return server;
 	}
 }
