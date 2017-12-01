@@ -346,11 +346,108 @@ class serverConnection {
 		}
 	}
 
-	int testFile() {
-		int server = 0; // 0: remote, 1: fog
+	int testFile(String uploadFilePath, String uploadFileName) {
+		long remoteStart = System.currentTimeMillis();
+        uploadFileForTest(uploadFilePath, uploadFileName, REMOTE);
+        long remoteElapse = System.currentTimeMillis() - remoteStart;
 
+        long fogStart = System.currentTimeMillis();
+        uploadFileForTest(uploadFilePath, uploadFileName, FOG);
+        long fogElapse = System.currentTimeMillis() - fogStart;
 
-
-		return server;
+        if (remoteElapse < fogElapse)
+            return REMOTE;
+        else
+            return FOG;
 	}
+
+    void uploadFileForTest(String uploadFilePath, String uploadFileName, int serverType) {
+        URLConnection conn;
+        DataOutputStream dos;
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "*****";
+        int bytesRead, bytesAvailable, bufferSize;
+        byte[] buffer;
+        int maxBufferSize = 1024*1024;
+        File uploadFile = new File(uploadFilePath + "/" + uploadFileName);
+
+        try {
+            // open a URL connection to the Server
+            FileInputStream fileInputStream = new FileInputStream(uploadFile);
+            URL url = new URL(serverURL + "/" + serverPHPfile);
+
+            // Open a HTTP  connection to  the URL
+			if (serverType == REMOTE)
+				conn = (HttpsURLConnection) url.openConnection();
+			else
+				conn = (HttpURLConnection)url.openConnection();
+            conn.setDoInput(true); // Allow Inputs
+            conn.setDoOutput(true); // Allow Outputs
+            conn.setUseCaches(false); // Don't use a Cached Copy
+            if (serverType == REMOTE)
+                ((HttpsURLConnection)conn).setRequestMethod("POST");
+            else
+                ((HttpURLConnection)conn).setRequestMethod("POST");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+            conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            conn.setRequestProperty("uploaded_file", uploadFileName);
+
+            dos = new DataOutputStream(conn.getOutputStream());
+            dos.writeBytes(twoHyphens + boundary + lineEnd);
+            dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\";filename=\"" + uploadFileName + "\"" + lineEnd);
+            dos.writeBytes(lineEnd);
+
+            // create a buffer of  maximum size
+            bytesAvailable = fileInputStream.available();
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            buffer = new byte[bufferSize];
+
+            // read file and write it into form...
+            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+            while (bytesRead > 0) {
+                dos.write(buffer, 0, bufferSize);
+                bytesAvailable = fileInputStream.available();
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+            }
+
+            // send multipart form data necessary after file data...
+            dos.writeBytes(lineEnd);
+            dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+
+            int responseCode;
+            if (serverType == REMOTE) {
+                responseCode = ((HttpsURLConnection) conn).getResponseCode();
+                Log.d("get response", ((HttpsURLConnection) conn).getResponseMessage());
+            }
+            else {
+                responseCode = ((HttpURLConnection) conn).getResponseCode();
+                Log.d("get response", ((HttpURLConnection) conn).getResponseMessage());
+            }
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                Log.d("Upload", "Upload Complete");
+            }
+
+            fileInputStream.close();
+            dos.flush();
+            dos.close();
+            if (serverType == REMOTE)
+                ((HttpsURLConnection)conn).disconnect();
+            else
+                ((HttpURLConnection)conn).disconnect();
+
+        } catch (Exception e) {
+            final String errMsg = e.toString();
+			Log.e(e.toString(), e.toString());
+            main.runOnUiThread(new Runnable() {
+                public void run() {
+                    main.mToast.setText(errMsg);
+                    main.mToast.show();
+                }
+            });
+        }
+    }
 }

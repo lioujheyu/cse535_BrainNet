@@ -22,6 +22,7 @@ import android.content.res.TypedArray;
 import java.util.ArrayList;
 import java.util.List;
 import android.widget.AdapterView;
+import android.os.SystemClock;
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REMOTE = 0;
     public static final int FOG = 1;
     public int ADAPTIVE = 2;
+    int barrier = 0;
 
     public class Item {
         boolean checked;
@@ -305,27 +307,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 serverchoose = ((RadioButton) findViewById(radioGroup.getCheckedRadioButtonId())).getText().toString();
+                barrier = 0;
                 if(serverchoose.equals("Remote server")) {
                     serverURL = remote_serverURL;
                     serverType = REMOTE;
+                    barrier = 1;
                 }
                 else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
                     serverType = FOG;
+                    barrier = 1;
                 }
                 else if(serverchoose.equals("Adaptive")) {
-                    serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
-                    if (conn.testFile() == 0) {
-                        serverURL = remote_serverURL;
-                        serverType = REMOTE;
-                        ADAPTIVE = 0;
-                    }
-                    else {
-                        serverURL = fog_serverURL;
-                        serverType = FOG;
-                        ADAPTIVE = 1;
-                    }
+                    new Thread(new Runnable() {
+                        public void run() {
+                            serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
+                            if (conn.testFile(db_path+"/S001/", "S001R01.edf") == 0) {
+                                serverURL = remote_serverURL;
+                                serverType = REMOTE;
+                                ADAPTIVE = 0;
+                            }
+                            else {
+                                serverURL = fog_serverURL;
+                                serverType = FOG;
+                                ADAPTIVE = 1;
+                            }
+                            barrier = 1;
+                        }
+                    }).start();
                 }
+                while (barrier != 1)
+                    SystemClock.sleep(500);
+
                 jump_to_register_server(serverType);
             }
         });
