@@ -1,5 +1,6 @@
 package group7.project;
 
+import android.content.DialogInterface;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -30,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     public static final int REMOTE = 0;
     public static final int FOG = 1;
     public int ADAPTIVE = 2;
-    int barrier = 0;
 
     public class Item {
         boolean checked;
@@ -307,19 +307,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 serverchoose = ((RadioButton) findViewById(radioGroup.getCheckedRadioButtonId())).getText().toString();
-                barrier = 0;
                 if(serverchoose.equals("Remote server")) {
                     serverURL = remote_serverURL;
                     serverType = REMOTE;
-                    barrier = 1;
                 }
                 else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
                     serverType = FOG;
-                    barrier = 1;
                 }
                 else if(serverchoose.equals("Adaptive")) {
-                    new Thread(new Runnable() {
+                    Thread t = new Thread(new Runnable() {
                         public void run() {
                             serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
                             if (conn.testFile(db_path+"/S001/", "S001R01.edf") == 0) {
@@ -332,13 +329,11 @@ public class MainActivity extends AppCompatActivity {
                                 serverType = FOG;
                                 ADAPTIVE = 1;
                             }
-                            barrier = 1;
                         }
-                    }).start();
+                    });
+                    t.start();
+                    try {t.join();} catch(InterruptedException e){}
                 }
-                while (barrier != 1)
-                    SystemClock.sleep(500);
-
                 jump_to_register_server(serverType);
             }
         });
@@ -350,10 +345,13 @@ public class MainActivity extends AppCompatActivity {
                 if(serverchoose.equals("Remote server")) {
                     serverURL = remote_serverURL;
                     serverType = REMOTE;
+                    jump_to_login_server(serverType);
+
                 }
                 else if(serverchoose.equals("Fog server")) {
                     serverURL = fog_serverURL;
                     serverType = FOG;
+                    jump_to_login_server(serverType);
                 }
                 else if(serverchoose.equals("Adaptive")) {
                     serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);

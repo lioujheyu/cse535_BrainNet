@@ -74,8 +74,18 @@ class serverConnection {
 					String response_buf = "";
 					final int currentFileIndex = i*(end-start+1) + (j-start+1);
 
-					if (i == uploadFileName.length)
+					if (i == uploadFileName.length) {
+
+						main.runOnUiThread(new Runnable() {
+								public void run() {
+									main.mToast.setText("Training...");
+									main.mToast.show();
+								}
+						});
+
 						filename = "end";
+					}
+
 					else {
 						ID = "S" + uploadFileName[i];
 						TASK = "R" + String.format("%02d", j);
@@ -164,6 +174,7 @@ class serverConnection {
 								}
 							});
 						}
+
 					}
 					dos.flush();
 					dos.close();
@@ -174,6 +185,7 @@ class serverConnection {
 
 					final String response = response_buf;
 					if (register_or_login) { // Register
+
 						if (response.equals("0")) {
 							main.runOnUiThread(new Runnable() {
 								public void run() {
@@ -350,10 +362,34 @@ class serverConnection {
 		long remoteStart = System.currentTimeMillis();
         uploadFileForTest(uploadFilePath, uploadFileName, REMOTE);
         long remoteElapse = System.currentTimeMillis() - remoteStart;
+		Double remoteSec = remoteElapse / 1000.0;
 
         long fogStart = System.currentTimeMillis();
         uploadFileForTest(uploadFilePath, uploadFileName, FOG);
         long fogElapse = System.currentTimeMillis() - fogStart;
+		Double fogSec = fogElapse / 1000.0;
+
+		String choosedServer = "";
+		if (remoteElapse < fogElapse)
+			choosedServer = "Remote Server!";
+		else
+			choosedServer = "Fog Server!";
+
+		main.msgBox.setMessage("File Transfer Testing: \nRemote Server: " + remoteSec  + " seconds" +
+				"\nFog Server: " + fogSec + " seconds\nChoose " + choosedServer)
+				.setTitle("Adaptive Test Result").setCancelable(false)
+				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+					}
+				});
+		main.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				main.msgBox.create().setCanceledOnTouchOutside(false);
+				main.msgBox.show();
+			}
+		});
 
         if (remoteElapse < fogElapse)
             return REMOTE;
