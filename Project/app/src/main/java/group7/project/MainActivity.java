@@ -1,6 +1,8 @@
 package group7.project;
 
+import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,8 +27,37 @@ import java.util.List;
 import android.widget.AdapterView;
 import android.os.SystemClock;
 import android.util.Log;
+import android.support.v4.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    /**
+     * Checks if the app has permission to write to device storage
+     *
+     * If the app does not has permission then the user will be prompted to grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
 
     public static final int REMOTE = 0;
     public static final int FOG = 1;
@@ -148,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
         FP = new ArrayList<Integer>();
         FN = new ArrayList<Integer>();
         TN = new ArrayList<Integer>();
+        verifyStoragePermissions(this);
         jump_to_page_1();
     }
 
@@ -320,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
                     Thread t = new Thread(new Runnable() {
                         public void run() {
                             serverConnection conn = new serverConnection(serverURL, test_serverPHPfile, MainActivity.this);
-                            if (conn.testFile(db_path+"/S001/", "S001R01.edf") == 0) {
+                            if (conn.testFile(db_path+"/S001/", "S001R14.edf") == 0) {
                                 serverURL = remote_serverURL;
                                 serverType = REMOTE;
                                 ADAPTIVE = 0;
