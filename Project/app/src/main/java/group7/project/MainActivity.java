@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public Toast mToast;
-    private Button registerbutton, loginbutton;
+    private Button registerbutton, loginbutton, statisticsbutton;
     private RadioGroup radioGroup;
     private String serverchoose;
     public int serverType;
@@ -298,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
         registerbutton = (Button) findViewById(R.id.button);
         loginbutton = (Button) findViewById(R.id.button2);
+        statisticsbutton = (Button) findViewById(R.id.button5);
 
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         radioGroup.check(R.id.radioButton2);
@@ -366,6 +367,12 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 jump_to_login_server(serverType);
+            }
+        });
+        statisticsbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
     }
