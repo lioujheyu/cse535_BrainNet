@@ -49,9 +49,9 @@ if __name__ == '__main__':
     print (probMat)
     predList = clf.predict(brainActList)
 
-    for i in range(0, len(predList)):
-        if np.max(probMat[i]) < PROBABILITY_THRESHOLD:
-            predList[i] = -1
+    # for i in range(0, len(predList)):
+    #     if np.max(probMat[i]) < PROBABILITY_THRESHOLD:
+    #         predList[i] = -1
 
     print (labelList)
     print (predList)

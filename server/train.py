@@ -15,6 +15,7 @@ from sklearn.naive_bayes import GaussianNB
 
 FFT_SAMPLE_START = 0
 FFT_SAMPLE_STOP = 20
+DATA_PATH = '/home/jliou4/cse535_BrainNet/data'
 
 # This follows the standard fft procedure found on Matlab fft example
 def FeatureExtFromEdf(filename):
@@ -65,7 +66,16 @@ if __name__ == '__main__':
         labelList.append(ID)
         sys.stdout.write('.')
         sys.stdout.flush()
+    print ('')
 
+    for i in range(50, 100):
+        IDstr = 'S' + str(i).zfill(3)
+        fileFullPath = DATA_PATH + '/' + IDstr + '/' + IDstr + 'R13.edf'
+        featureSet = FeatureExtFromEdf(fileFullPath)
+        brainActList.append(featureSet.tolist())
+        labelList.append(-1)
+        sys.stdout.write('.')
+        sys.stdout.flush()
     print ('')
 
     # First SVM training for cross validation
