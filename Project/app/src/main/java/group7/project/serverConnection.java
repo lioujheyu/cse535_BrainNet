@@ -29,6 +29,7 @@ class serverConnection {
 	private String serverURL; // should not include any filename
     private String serverPHPfile; // Upload procedure will use this server-side program
     private MainActivity main;
+	powerMeasure p;
 
 
 	serverConnection(String serverURL, String serverPHPfile, MainActivity mainActivity) {
@@ -37,7 +38,7 @@ class serverConnection {
 		this.main = mainActivity;
 	}
 
-	void uploadFile(String uploadFilePath, String[] uploadFileName, boolean register_or_login, int serverType) {
+	void uploadFile(String uploadFilePath, String[] uploadFileName, boolean register_or_login, final int serverType) {
         URLConnection conn;
 		DataOutputStream dos;
 		String lineEnd = "\r\n";
@@ -62,11 +63,15 @@ class serverConnection {
 
 		final int totalFileIndex = uploadFileName.length * (end-start+1);
 
+		p = new powerMeasure(main, serverType, register_or_login);
+		p.start();
+
 		try {
 			main.runOnUiThread(new Runnable() {
 				public void run() {
 					main.mToast.setText(" Uploading...");
 					main.mToast.show();
+
 				}
 			});
 			for(int i = 0; i <= uploadFileName.length; i++) {
@@ -78,7 +83,7 @@ class serverConnection {
 
 						main.runOnUiThread(new Runnable() {
 								public void run() {
-									main.mToast.setText("Training...");
+									main.mToast.setText("Processing...");
 									main.mToast.show();
 								}
 						});
@@ -187,11 +192,16 @@ class serverConnection {
 					if (register_or_login) { // Register
 
 						if (response.equals("0")) {
+							p.stop();
 							main.runOnUiThread(new Runnable() {
 								public void run() {
 									main.stopTime = System.currentTimeMillis();
 									Double elapsedTime = (double)(main.stopTime - main.startTime);
 									elapsedTime = elapsedTime / 1000;
+									if (serverType == REMOTE)
+										main.remoteTrainT = elapsedTime;
+									else
+										main.fogTrainT = elapsedTime;
 									main.msgBox.setMessage("Training Completed.\n execution time: " + Double.toString(elapsedTime) + " seconds")
 									.setTitle("Training Status").setCancelable(false)
 									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -252,10 +262,15 @@ class serverConnection {
 										main.FP.add(Integer.parseInt(num[1]));
 								}
 							}
+							p.stop();
 							Double accuracy = (main.TP.size()+main.TN.size()) / testUser;
 							main.stopTime = System.currentTimeMillis();
 							Double elapsedTime = (double)(main.stopTime - main.startTime);
 							elapsedTime = elapsedTime / 1000;
+							if (serverType == REMOTE)
+								main.remoteTestT = elapsedTime;
+							else
+								main.fogTestT = elapsedTime;
 							main.msgBox.setMessage("Testing Completed.\n execution time: " + Double.toString(elapsedTime) + " seconds\n\n"
 							+ "Total test users: " + Integer.toString(testUser.intValue()) + "\nAccuracy: " + Double.toString(accuracy))
 									.setTitle("Testing Status").setCancelable(false)

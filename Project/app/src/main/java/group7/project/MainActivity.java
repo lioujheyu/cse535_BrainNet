@@ -3,12 +3,17 @@ package group7.project;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -28,6 +33,11 @@ import android.widget.AdapterView;
 import android.os.SystemClock;
 import android.util.Log;
 import android.support.v4.app.ActivityCompat;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.LineDataSet;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -159,6 +169,10 @@ public class MainActivity extends AppCompatActivity {
     public ArrayList<Integer> registeredUser, TP, FP, FN, TN;
     public long startTime, stopTime;
     public AlertDialog.Builder msgBox;
+    public ArrayList<Float> remoteTrainP, fogTrainP, remoteTestP, fogTestP;
+    public Double remoteTrainT, fogTrainT, remoteTestT, fogTestT;
+    BatteryManager bm;
+    Intent batteryIntent;
 
     String db_path = Environment.getExternalStorageDirectory() + "/Android/data/PROJECT_DATA";
     String remote_serverURL = "https://www.lioujheyu.com";
@@ -180,6 +194,21 @@ public class MainActivity extends AppCompatActivity {
         FN = new ArrayList<Integer>();
         TN = new ArrayList<Integer>();
         verifyStoragePermissions(this);
+        remoteTrainP = new ArrayList<>();
+        fogTrainP = new ArrayList<>();
+        remoteTestP = new ArrayList<>();
+        fogTestP = new ArrayList<>();
+        remoteTrainT = 0.0;
+        remoteTestT = 0.0;
+        fogTrainT = 0.0;
+        fogTestT = 0.0;
+        bm = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+        batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        jump_to_page_1();
+    }
+
+    @Override
+    public void onBackPressed() {
         jump_to_page_1();
     }
 
@@ -401,12 +430,94 @@ public class MainActivity extends AppCompatActivity {
                 jump_to_login_server(serverType);
             }
         });
+
         statisticsbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setContentView(R.layout.sta_layout);
+                LinearLayout remoteTrain, fogTrain, remoteTest, fogTest;
+                TextView text1, text2, text3, text4;
+                TextView sta1, sta2, sta3, sta4;
+
+                remoteTrain = (LinearLayout) findViewById(R.id.draw1);
+                fogTrain = (LinearLayout) findViewById(R.id.draw2);
+                remoteTest = (LinearLayout) findViewById(R.id.draw3);
+                fogTest = (LinearLayout) findViewById(R.id.draw4);
+                text1 = new TextView(getBaseContext());
+                text2 = new TextView(getBaseContext());
+                text3 = new TextView(getBaseContext());
+                text4 = new TextView(getBaseContext());
+                sta1 = (TextView) findViewById(R.id.textSta1);
+                sta2 = (TextView) findViewById(R.id.textSta2);
+                sta3 = (TextView) findViewById(R.id.textSta3);
+                sta4 = (TextView) findViewById(R.id.textSta4);
+
+                remoteTrain.removeAllViews();
+                fogTrain.removeAllViews();
+                remoteTest.removeAllViews();
+                fogTest.removeAllViews();
+
+                if (remoteTrainP.isEmpty()) {
+                    text1.setText("You haven't done a remote server training.");
+                    remoteTrain.addView(text1);
+                }
+                else {
+                    float sum = 0;
+                    for (int i = 0; i < remoteTrainP.size(); i++)
+                        sum += remoteTrainP.get(i);
+                    sta1.setText("Remote Training: " + Double.toString(remoteTrainT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+
+                }
+                if (fogTrainP.isEmpty()) {
+                    text2.setText("You haven't done a fog server training.");
+                    fogTrain.addView(text2);
+                }
+                else {
+                    float sum = 0;
+                    for (int i = 0; i < fogTrainP.size(); i++)
+                        sum += fogTrainP.get(i);
+                    sta2.setText("Fog Training: " + Double.toString(fogTrainT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+/*                    LineChart chart = new LineChart(getApplicationContext());
+                    ArrayList<Entry> entries = new ArrayList<Entry>();
+                    for (int i = 0; i < fogTrainP.size(); i++) {
+                        entries.add(new Entry(fogTrainP.get(i),i));
+                    }
+                    LineDataSet dataSet = new LineDataSet(entries, "label");
+                    ArrayList<String> labels = new ArrayList<String>();
+                    for (int i = 0; i < fogTrainP.size(); i++) {
+                        labels.add(Float.toString((float)(i*0.1)));
+                    }
+
+                    LineData lineData = new LineData(dataSet);
+                    chart.setData(lineData);
+                    chart.invalidate();
+                    fogTrain.addView(chart);
+*/
+                }
+                if (remoteTestP.isEmpty()) {
+                    text3.setText("You haven't done a remote server testing.");
+                    remoteTest.addView(text3);
+                }
+                else {
+                    float sum = 0;
+                    for (int i = 0; i < remoteTestP.size(); i++)
+                        sum += remoteTestP.get(i);
+                    sta3.setText("Remote Testing: " + Double.toString(remoteTestT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+
+                }
+                if (fogTestP.isEmpty()) {
+                    text4.setText("You haven't done a fog server testing.");
+                    fogTest.addView(text4);
+                }
+                else {
+                    float sum = 0;
+                    for (int i = 0; i < fogTestP.size(); i++)
+                        sum += fogTestP.get(i);
+                    sta4.setText("Fog Testing: " + Double.toString(fogTestT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+
+                }
 
             }
         });
     }
-
 }
