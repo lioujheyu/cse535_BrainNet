@@ -33,6 +33,8 @@ import android.widget.AdapterView;
 import android.os.SystemClock;
 import android.util.Log;
 import android.support.v4.app.ActivityCompat;
+
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 
@@ -435,31 +437,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 setContentView(R.layout.sta_layout);
-                LinearLayout remoteTrain, fogTrain, remoteTest, fogTest;
                 TextView text1, text2, text3, text4;
                 TextView sta1, sta2, sta3, sta4;
 
-                remoteTrain = (LinearLayout) findViewById(R.id.draw1);
-                fogTrain = (LinearLayout) findViewById(R.id.draw2);
-                remoteTest = (LinearLayout) findViewById(R.id.draw3);
-                fogTest = (LinearLayout) findViewById(R.id.draw4);
                 text1 = new TextView(getBaseContext());
-                text2 = new TextView(getBaseContext());
                 text3 = new TextView(getBaseContext());
                 text4 = new TextView(getBaseContext());
                 sta1 = (TextView) findViewById(R.id.textSta1);
                 sta2 = (TextView) findViewById(R.id.textSta2);
                 sta3 = (TextView) findViewById(R.id.textSta3);
                 sta4 = (TextView) findViewById(R.id.textSta4);
-
-                remoteTrain.removeAllViews();
-                fogTrain.removeAllViews();
-                remoteTest.removeAllViews();
-                fogTest.removeAllViews();
+                LineChart chart1 = (LineChart) findViewById(R.id.chart1);
+                LineChart chart2 = (LineChart) findViewById(R.id.chart2);
+                LineChart chart3 = (LineChart) findViewById(R.id.chart3);
+                LineChart chart4 = (LineChart) findViewById(R.id.chart4);
 
                 if (remoteTrainP.isEmpty()) {
-                    text1.setText("You haven't done a remote server training.");
-                    remoteTrain.addView(text1);
+                    sta1.setText("Remote Training: You haven't done a remote server training.");
                 }
                 else {
                     float sum = 0;
@@ -467,53 +461,80 @@ public class MainActivity extends AppCompatActivity {
                         sum += remoteTrainP.get(i);
                     sta1.setText("Remote Training: " + Double.toString(remoteTrainT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
 
+                    List<Entry> entries = new ArrayList<Entry>();
+                    for (int i = 0; i < remoteTrainP.size(); i++) {
+                        entries.add(new Entry(i,remoteTrainP.get(i)));
+                    }
+                    LineDataSet dataSet = new LineDataSet(entries, "Energy Consumption(J)");
+                    LineData lineData = new LineData(dataSet);
+                    Description description = new Description();
+                    description.setText("Remote Training Energy");
+                    chart1.setDescription(description);
+                    chart1.setData(lineData);
+                    chart1.invalidate();
+
                 }
                 if (fogTrainP.isEmpty()) {
-                    text2.setText("You haven't done a fog server training.");
-                    fogTrain.addView(text2);
+                    sta2.setText("Fog Training: You haven't done a fog server training.");
                 }
                 else {
                     float sum = 0;
                     for (int i = 0; i < fogTrainP.size(); i++)
                         sum += fogTrainP.get(i);
                     sta2.setText("Fog Training: " + Double.toString(fogTrainT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
-/*                    LineChart chart = new LineChart(getApplicationContext());
-                    ArrayList<Entry> entries = new ArrayList<Entry>();
+                    List<Entry> entries = new ArrayList<Entry>();
                     for (int i = 0; i < fogTrainP.size(); i++) {
-                        entries.add(new Entry(fogTrainP.get(i),i));
+                        entries.add(new Entry(i,fogTrainP.get(i)));
                     }
-                    LineDataSet dataSet = new LineDataSet(entries, "label");
-                    ArrayList<String> labels = new ArrayList<String>();
-                    for (int i = 0; i < fogTrainP.size(); i++) {
-                        labels.add(Float.toString((float)(i*0.1)));
-                    }
-
+                    LineDataSet dataSet = new LineDataSet(entries, "Energy Consumption(J)");
                     LineData lineData = new LineData(dataSet);
-                    chart.setData(lineData);
-                    chart.invalidate();
-                    fogTrain.addView(chart);
-*/
+                    Description description = new Description();
+                    description.setText("Fog Training Energy");
+                    chart2.setDescription(description);
+                    chart2.setData(lineData);
+                    chart2.invalidate();
+
                 }
                 if (remoteTestP.isEmpty()) {
-                    text3.setText("You haven't done a remote server testing.");
-                    remoteTest.addView(text3);
+                    sta3.setText("Remote Testing: You haven't done a remote server testing.");
                 }
                 else {
                     float sum = 0;
                     for (int i = 0; i < remoteTestP.size(); i++)
                         sum += remoteTestP.get(i);
                     sta3.setText("Remote Testing: " + Double.toString(remoteTestT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+                    List<Entry> entries = new ArrayList<Entry>();
+                    for (int i = 0; i < remoteTestP.size(); i++) {
+                        entries.add(new Entry(i,remoteTestP.get(i)));
+                    }
+                    LineDataSet dataSet = new LineDataSet(entries, "Energy Consumption(J)");
+                    LineData lineData = new LineData(dataSet);
+                    Description description = new Description();
+                    description.setText("Remote Testing Energy");
+                    chart3.setDescription(description);
+                    chart3.setData(lineData);
+                    chart3.invalidate();
 
                 }
                 if (fogTestP.isEmpty()) {
-                    text4.setText("You haven't done a fog server testing.");
-                    fogTest.addView(text4);
+                    sta4.setText("Fog Testing: You haven't done a fog server testing.");
                 }
                 else {
                     float sum = 0;
                     for (int i = 0; i < fogTestP.size(); i++)
                         sum += fogTestP.get(i);
                     sta4.setText("Fog Testing: " + Double.toString(fogTestT) + "(sec), Energy: " + Float.toString(sum) + "(J)");
+                    List<Entry> entries = new ArrayList<Entry>();
+                    for (int i = 0; i < fogTestP.size(); i++) {
+                        entries.add(new Entry(i,fogTestP.get(i)));
+                    }
+                    LineDataSet dataSet = new LineDataSet(entries, "Energy Consumption(J)");
+                    LineData lineData = new LineData(dataSet);
+                    Description description = new Description();
+                    description.setText("Fog Testing Energy");
+                    chart4.setDescription(description);
+                    chart4.setData(lineData);
+                    chart4.invalidate();
 
                 }
 
